@@ -22,7 +22,7 @@ from pathlib import Path
 
 import exifcore
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 __date__ = "2026-10-30"
 PROG = "exifrename.py"
 
@@ -575,7 +575,9 @@ def main():
     if args.copy is not None and args.copytree is not None:
         ap.error("use either --copy or --copytree, not both")
     if args.onlyvalid and args.copy is None and args.copytree is None:
-        ap.error("--onlyvalid only works together with --copy or --copytree")
+        print(f"{PROG}: warning: --onlyvalid only works together with --copy or --copytree; ignored.",
+              file=sys.stderr)
+        args.onlyvalid = False
     if args.undo and (args.copy is not None or args.copytree is not None or args.force):
         ap.error("-U cannot be combined with --copy, --copytree or -F")
     if not (args.patterns or args.current or args.recursive or args.undo):

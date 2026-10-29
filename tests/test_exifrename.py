@@ -121,7 +121,10 @@ class CliTests(unittest.TestCase):
         code, out, err = run(self.d, "-C", "-D", "out", "-O")
         self.assertEqual(code, 0, err)
         self.assertEqual(self.names("out"), ["EXIF-2020-05-06_07-08-09.jpg"])
-        self.assertEqual(run(self.d, "-C", "-O")[0], 2)
+        code, out, err = run(self.d, "-C", "-O", "--dry-run")
+        self.assertEqual(code, 0)
+        self.assertIn("ignored", err)
+        self.assertIn("would rename", out)
 
     def test_usage_errors(self):
         self.assertEqual(run(self.d)[0], 2)
