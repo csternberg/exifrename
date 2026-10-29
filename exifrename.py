@@ -363,8 +363,7 @@ def run_rename(args, tokens, cwd, rep):
             counts["done"] += 1
 
     extra = f", {counts['kept']} copied with original name" if copy_mode else ""
-    rep.warn(f"
-{counts['done']} {verb_dry if args.dry_run else verb_done}{extra}, "
+    rep.warn(f"\n{counts['done']} {verb_dry if args.dry_run else verb_done}{extra}, "
              f"{counts['skipped']} skipped, {counts['unreadable']} unreadable, "
              f"{counts['failed']} failed.")
     return status

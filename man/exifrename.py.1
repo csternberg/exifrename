@@ -1,5 +1,5 @@
 .\" Manual page for exifrename.py. Keep in sync with README.md and "exifrename.py --help".
-.TH EXIFRENAME.PY 1 "2026-10-29" "exifrename.py 1.0.0" "User Commands"
+.TH EXIFRENAME.PY 1 "2026-10-30" "exifrename.py 1.1.0" "User Commands"
 .SH NAME
 exifrename.py \- rename or copy image files after their EXIF date
 .SH SYNOPSIS
@@ -71,29 +71,30 @@ Tags: %YYYY% %YY% (year), %MMMMMM% %MMMM% (month name, full and short, English),
 Rename even if the EXIF date is invalid, using the EXIF save date, the GPS date stamp,
 or the file creation/modification time, in that order.
 .TP
-.BR \-\-copy " [\fIFOLDER\fR]"
+.BR \-d ", " \-\-copy " [\fIFOLDER\fR]"
 Copy instead of rename. Copies go to FOLDER, or beside the originals.
+Files that are not renamed are copied too, with their original name.
 .TP
-.BR \-\-copytree " \fIFOLDER\fR"
+.BR \-t ", " \-\-copytree " \fIFOLDER\fR"
 Like \-\-copy, but recreate the folder tree relative to the current folder below FOLDER.
 .TP
 .BR \-u ", " \-\-undo
 Restore old names from exifrename.map (current folder, or all subfolders with \-r).
 .TP
-.B \-\-dry\-run
+.BR \-n ", " \-\-dry\-run
 Show what would happen; change nothing.
 .TP
 .BR \-l ", " \-\-log " [\fIFILE\fR]"
 Also write the output to a log (default exifrename.log, appended).
 .TP
-.BI \-\-doubtful\-count " N"
+.BR \-x ", " \-\-doubtful\-count " \fIN\fR"
 Mark EXIF dates doubtful when a folder has more than N images within
 \-\-doubtful\-seconds of each other (default 20; 0 turns it off).
 .TP
-.BI \-\-doubtful\-seconds " S"
+.BR \-s ", " \-\-doubtful\-seconds " \fIS\fR"
 Time span for the doubtful check (default 60).
 .TP
-.B \-\-check
+.BR \-k ", " \-\-check
 Check prerequisites (Pillow) and exit.
 .TP
 .BR \-v ", " \-\-version
