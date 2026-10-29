@@ -22,7 +22,7 @@ from pathlib import Path
 
 import exifcore
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __date__ = "2026-10-30"
 PROG = "exifrename.py"
 
@@ -333,7 +333,11 @@ def run_rename(args, tokens, cwd, rep):
 
     def keep_original(path, shown, reason, counter):
         """Copy mode: a file that is not renamed is still copied, under its own name."""
-        if copy_mode:
+        if copy_mode and args.onlyvalid and not args.force:
+            if counter != "unreadable":
+                counts[counter] += 1
+            rep.line(f"skipped: {shown}: {reason}")
+        elif copy_mode:
             if transfer(path, shown, dest_dir_for(path), path.stem, f"original name: {reason}"):
                 counts["kept"] += 1
         else:
@@ -479,7 +483,7 @@ names and undo:
   Renames are recorded in exifrename.map in each folder; -U restores the old names.
   -L and --copy take an optional value: put them last, or write -L=file / --copy=folder.
   With --copy/--copytree, files that are not renamed (invalid EXIF without -F, unreadable)
-  are copied too, under their original name.
+  are copied too, under their original name; --onlyvalid leaves those out (not with -F).
 
 exit codes: 0 ok, 1 error or nothing found, 2 usage, 130 interrupted.
 """
@@ -523,6 +527,9 @@ def build_parser():
                     help="copy instead of rename; copies go to FOLDER (default: beside the original). Files that are not renamed are copied too, with their original name")
     ap.add_argument("-t", "--copytree", metavar="FOLDER",
                     help="like --copy FOLDER, but recreate the folder tree relative to the current folder")
+    ap.add_argument("-o", "--onlyvalid", action="store_true",
+                    help="with --copy/--copytree: copy only files with a valid EXIF date "
+                         "(ignored with -F)")
     ap.add_argument("-u", "--undo", action="store_true",
                     help="restore the old names from exifrename.map (current folder, or all with -R)")
     ap.add_argument("-n", "--dry-run", action="store_true",
@@ -567,6 +574,8 @@ def main():
 
     if args.copy is not None and args.copytree is not None:
         ap.error("use either --copy or --copytree, not both")
+    if args.onlyvalid and args.copy is None and args.copytree is None:
+        ap.error("--onlyvalid only works together with --copy or --copytree")
     if args.undo and (args.copy is not None or args.copytree is not None or args.force):
         ap.error("-U cannot be combined with --copy, --copytree or -F")
     if not (args.patterns or args.current or args.recursive or args.undo):

@@ -35,6 +35,7 @@ Switches are case-insensitive (`-R` = `-r`), and every one has a short and a lon
 | `-F`, `--force` | Rename even if the EXIF date is invalid (see below). |
 | `-D [FOLDER]`, `--copy` | Copy instead of rename. Copies go to `FOLDER`, or beside the originals if no folder is given. Files that are not renamed (invalid EXIF without `-F`, unreadable) are copied too, with their original name. |
 | `-T FOLDER`, `--copytree` | Like `--copy FOLDER`, but recreates the sub-folder tree relative to the current folder: `./folder1/folder2/x.jpg` -> `FOLDER/folder1/folder2/`. Files in the current folder go directly in `FOLDER`. |
+| `-O`, `--onlyvalid` | With `--copy`/`--copytree`: copy only files with a valid EXIF date; the others are skipped. Ignored with `-F`. A usage error without `--copy`/`--copytree`. |
 | `-U`, `--undo` | Restore old names from `exifrename.map` (current folder, or all subfolders with `-R`). `PATTERN` limits it to matching new names. |
 | `-N`, `--dry-run` | Show what would happen; change nothing (works with rename, copy and undo). |
 | `-L [FILE]`, `--log` | Also write the output to a log (default `exifrename.log`, appended). |
@@ -108,6 +109,9 @@ python -m unittest discover tests
 ```
 
 ## Changelog
+
+### 1.2.0 (2026-10-30)
+- New `-O`/`--onlyvalid` with `--copy`/`--copytree`: only files with a valid EXIF date are copied.
 
 ### 1.1.0 (2026-10-30)
 - `--copy`/`--copytree` also copy files that are not renamed, under their original name.

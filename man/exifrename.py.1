@@ -1,5 +1,5 @@
 .\" Manual page for exifrename.py. Keep in sync with README.md and "exifrename.py --help".
-.TH EXIFRENAME.PY 1 "2026-10-30" "exifrename.py 1.1.0" "User Commands"
+.TH EXIFRENAME.PY 1 "2026-10-30" "exifrename.py 1.2.0" "User Commands"
 .SH NAME
 exifrename.py \- rename or copy image files after their EXIF date
 .SH SYNOPSIS
@@ -13,6 +13,7 @@ exifrename.py \- rename or copy image files after their EXIF date
 .RI [ FOLDER ]]
 .RB [ \-\-copytree
 .IR FOLDER ]
+.RB [ \-\-onlyvalid ]
 .RB [ \-\-dry\-run ]
 .RB [ \-l
 .RI [ FILE ]]
@@ -77,6 +78,9 @@ Files that are not renamed are copied too, with their original name.
 .TP
 .BR \-t ", " \-\-copytree " \fIFOLDER\fR"
 Like \-\-copy, but recreate the folder tree relative to the current folder below FOLDER.
+.TP
+.BR \-o ", " \-\-onlyvalid
+With \-\-copy or \-\-copytree, copy only files with a valid EXIF date. Ignored with \-f.
 .TP
 .BR \-u ", " \-\-undo
 Restore old names from exifrename.map (current folder, or all subfolders with \-r).

@@ -115,6 +115,14 @@ class CliTests(unittest.TestCase):
         self.assertEqual(self.names("out"), ["EXIF-2020-05-06_07-08-09.jpg", "c.jpg"])
         self.assertEqual(self.names(), ["a.jpg", "c.jpg"])
 
+    def test_onlyvalid(self):
+        make_jpg(self.d / "a.jpg", "2020:05:06 07:08:09")
+        make_jpg(self.d / "c.jpg")  # no EXIF
+        code, out, err = run(self.d, "-C", "-D", "out", "-O")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.names("out"), ["EXIF-2020-05-06_07-08-09.jpg"])
+        self.assertEqual(run(self.d, "-C", "-O")[0], 2)
+
     def test_usage_errors(self):
         self.assertEqual(run(self.d)[0], 2)
         self.assertEqual(run(self.d, "-C", "-M", "%bad%")[0], 2)
