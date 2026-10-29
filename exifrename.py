@@ -22,8 +22,8 @@ from pathlib import Path
 
 import exifcore
 
-__version__ = "1.0.0"
-__date__ = "2026-10-29"
+__version__ = "1.1.0"
+__date__ = "2026-10-30"
 PROG = "exifrename.py"
 
 MAP_NAME = "exifrename.map"
@@ -282,52 +282,34 @@ def run_rename(args, tokens, cwd, rep):
     copy_mode = args.copy is not None or args.copytree is not None
     verb_done, verb_dry = ("copied", "would copy") if copy_mode else ("renamed", "would rename")
     claimed = set()
-    counts = {"done": 0, "skipped": 0, "failed": 0, "unreadable": 0}
+    counts = {"done": 0, "kept": 0, "skipped": 0, "failed": 0, "unreadable": 0}
     status = 0
 
-    for rec in records:
-        path = rec["path"]
-        shown = display(path, cwd)
-        if "error" in rec:
-            counts["unreadable"] += 1
-            rep.line(f"skipped: {shown}: {rec['error']}")
-            continue
-        when, source = choose_date(rec, args.force)
-        if when is None:
-            counts["skipped"] += 1
-            rep.line(f"skipped: {shown}: {source}")
-            continue
-
-        stem = render_mask(tokens, when, path.stem, path.parent.name)
-        if not stem or INVALID_NAME_CHARS.search(stem):
-            counts["failed"] += 1
-            status = 1
-            rep.line(f"error: {shown}: mask gives an unusable file name ({stem!r})")
-            continue
-
+    def dest_dir_for(path):
         if args.copytree is not None:
             try:
                 rel = path.parent.relative_to(cwd)
             except ValueError:
                 rel = Path(path.parent.name)
-            dest_dir = Path(args.copytree) / rel
+            d = Path(args.copytree) / rel
         elif args.copy:
-            dest_dir = Path(args.copy)
+            d = Path(args.copy)
         else:
-            dest_dir = path.parent
-        dest_dir = dest_dir if dest_dir.is_absolute() else cwd / dest_dir
+            d = path.parent
+        return d if d.is_absolute() else cwd / d
 
+    def transfer(path, shown, dest_dir, stem, source):
+        """Rename or copy one file to dest_dir/stem+ext. Returns True if it was done."""
+        nonlocal status
         target = pick_target(dest_dir, stem, path.suffix, claimed, None if copy_mode else path)
         if not copy_mode and key_of(target) == key_of(path) and target.name == path.name:
             counts["skipped"] += 1
             rep.line(f"skipped: {shown}: already has the right name")
-            continue
-
+            return False
         label = f"{shown} -> {display(target, cwd)}  [{source}]"
         if args.dry_run:
-            counts["done"] += 1
             rep.line(f"{verb_dry}: {label}")
-            continue
+            return True
         try:
             if copy_mode:
                 dest_dir.mkdir(parents=True, exist_ok=True)
@@ -345,11 +327,44 @@ def run_rename(args, tokens, cwd, rep):
             counts["failed"] += 1
             status = 1
             rep.line(f"error: {shown}: {exifcore.friendly_error(e)}")
-            continue
-        counts["done"] += 1
+            return False
         rep.line(f"{verb_done}: {label}")
+        return True
 
-    rep.warn(f"\n{counts['done']} {verb_dry if args.dry_run else verb_done}, "
+    def keep_original(path, shown, reason, counter):
+        """Copy mode: a file that is not renamed is still copied, under its own name."""
+        if copy_mode:
+            if transfer(path, shown, dest_dir_for(path), path.stem, f"original name: {reason}"):
+                counts["kept"] += 1
+        else:
+            counts[counter] += 1
+            rep.line(f"skipped: {shown}: {reason}")
+
+    for rec in records:
+        path = rec["path"]
+        shown = display(path, cwd)
+        if "error" in rec:
+            if copy_mode:
+                counts["unreadable"] += 1
+            keep_original(path, shown, rec["error"], "unreadable")
+            continue
+        when, source = choose_date(rec, args.force)
+        if when is None:
+            keep_original(path, shown, source, "skipped")
+            continue
+
+        stem = render_mask(tokens, when, path.stem, path.parent.name)
+        if not stem or INVALID_NAME_CHARS.search(stem):
+            counts["failed"] += 1
+            status = 1
+            rep.line(f"error: {shown}: mask gives an unusable file name ({stem!r})")
+            continue
+        if transfer(path, shown, dest_dir_for(path), stem, source):
+            counts["done"] += 1
+
+    extra = f", {counts['kept']} copied with original name" if copy_mode else ""
+    rep.warn(f"
+{counts['done']} {verb_dry if args.dry_run else verb_done}{extra}, "
              f"{counts['skipped']} skipped, {counts['unreadable']} unreadable, "
              f"{counts['failed']} failed.")
     return status
@@ -464,6 +479,8 @@ names and undo:
   Equal names get _001, _002, ... Existing files are never overwritten.
   Renames are recorded in exifrename.map in each folder; -U restores the old names.
   -L and --copy take an optional value: put them last, or write -L=file / --copy=folder.
+  With --copy/--copytree, files that are not renamed (invalid EXIF without -F, unreadable)
+  are copied too, under their original name.
 
 exit codes: 0 ok, 1 error or nothing found, 2 usage, 130 interrupted.
 """
@@ -503,22 +520,22 @@ def build_parser():
     ap.add_argument("-f", "--force", action="store_true",
                     help="rename even when the EXIF date is invalid (falls back to other "
                          "EXIF dates, then the file date)")
-    ap.add_argument("--copy", nargs="?", const="", metavar="FOLDER",
-                    help="copy instead of rename; copies go to FOLDER (default: beside the original)")
-    ap.add_argument("--copytree", metavar="FOLDER",
+    ap.add_argument("-d", "--copy", nargs="?", const="", metavar="FOLDER",
+                    help="copy instead of rename; copies go to FOLDER (default: beside the original). Files that are not renamed are copied too, with their original name")
+    ap.add_argument("-t", "--copytree", metavar="FOLDER",
                     help="like --copy FOLDER, but recreate the folder tree relative to the current folder")
     ap.add_argument("-u", "--undo", action="store_true",
                     help="restore the old names from exifrename.map (current folder, or all with -R)")
-    ap.add_argument("--dry-run", action="store_true",
+    ap.add_argument("-n", "--dry-run", action="store_true",
                     help="show what would happen; change nothing")
     ap.add_argument("-l", "--log", nargs="?", const=LOG_NAME, metavar="FILE",
                     help=f"also write the output to a log file (default: {LOG_NAME})")
-    ap.add_argument("--doubtful-count", type=int, default=20, metavar="N",
+    ap.add_argument("-x", "--doubtful-count", type=int, default=20, metavar="N",
                     help="mark EXIF dates doubtful when a folder has more than N images "
                          "taken within --doubtful-seconds of each other (default 20; 0 = off)")
-    ap.add_argument("--doubtful-seconds", type=int, default=60, metavar="S",
+    ap.add_argument("-s", "--doubtful-seconds", type=int, default=60, metavar="S",
                     help="time span for the doubtful check (default 60)")
-    ap.add_argument("--check", action="store_true",
+    ap.add_argument("-k", "--check", action="store_true",
                     help="check prerequisites, show how to install missing ones, and exit")
     ap.add_argument("-v", "--version", action="version",
                     version=f"{PROG} {__version__} ({__date__})")

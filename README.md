@@ -24,7 +24,7 @@ python exifrename.py -U [-R] [PATTERN ...]
 ```
 
 One of `PATTERN`, `-C` or `-R` is required (otherwise the help is shown and the exit code is 2).
-Switches are case-insensitive (`-R` = `-r`).
+Switches are case-insensitive (`-R` = `-r`), and every one has a short and a long (unix style) name.
 
 | Option | Meaning |
 |---|---|
@@ -33,13 +33,13 @@ Switches are case-insensitive (`-R` = `-r`).
 | `-R`, `--recursive` | Include subfolders. With `PATTERN` it selects matching files in every subfolder; without it, all images. With a `PATTERN`, `-C` is ignored. |
 | `-M MASK`, `--mask` | New name, see below. Default `EXIF-%YYYY%-%MM%-%DD%_%HH%-%II%-%SS%`. |
 | `-F`, `--force` | Rename even if the EXIF date is invalid (see below). |
-| `--copy [FOLDER]` | Copy instead of rename. Copies go to `FOLDER`, or beside the originals if no folder is given. |
-| `--copytree FOLDER` | Like `--copy FOLDER`, but recreates the sub-folder tree relative to the current folder: `./folder1/folder2/x.jpg` -> `FOLDER/folder1/folder2/`. Files in the current folder go directly in `FOLDER`. |
+| `-D [FOLDER]`, `--copy` | Copy instead of rename. Copies go to `FOLDER`, or beside the originals if no folder is given. Files that are not renamed (invalid EXIF without `-F`, unreadable) are copied too, with their original name. |
+| `-T FOLDER`, `--copytree` | Like `--copy FOLDER`, but recreates the sub-folder tree relative to the current folder: `./folder1/folder2/x.jpg` -> `FOLDER/folder1/folder2/`. Files in the current folder go directly in `FOLDER`. |
 | `-U`, `--undo` | Restore old names from `exifrename.map` (current folder, or all subfolders with `-R`). `PATTERN` limits it to matching new names. |
-| `--dry-run` | Show what would happen; change nothing (works with rename, copy and undo). |
+| `-N`, `--dry-run` | Show what would happen; change nothing (works with rename, copy and undo). |
 | `-L [FILE]`, `--log` | Also write the output to a log (default `exifrename.log`, appended). |
-| `--doubtful-count N`, `--doubtful-seconds S` | Doubtful-date check, as in metadata.py (default 20 images within 60 s; `0` turns it off). |
-| `--check` | Verify prerequisites. |
+| `-X N`, `--doubtful-count`; `-S S`, `--doubtful-seconds` | Doubtful-date check, as in metadata.py (default 20 images within 60 s; `0` turns it off). |
+| `-K`, `--check` | Verify prerequisites. |
 | `-V`, `--version` | Show the version. |
 | `-H`, `-?`, `--help` | Show help. |
 
@@ -108,6 +108,10 @@ python -m unittest discover tests
 ```
 
 ## Changelog
+
+### 1.1.0 (2026-10-30)
+- `--copy`/`--copytree` also copy files that are not renamed, under their original name.
+- Every option now has a short and a long name: `-D/--copy`, `-T/--copytree`, `-N/--dry-run`, `-K/--check`, `-X/--doubtful-count`, `-S/--doubtful-seconds`.
 
 ### 1.0.0 (2026-10-29)
 - First release.
