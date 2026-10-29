@@ -1,0 +1,114 @@
+.\" Manual page for exifrename.py. Keep in sync with README.md and "exifrename.py --help".
+.TH EXIFRENAME.PY 1 "2026-10-29" "exifrename.py 1.0.0" "User Commands"
+.SH NAME
+exifrename.py \- rename or copy image files after their EXIF date
+.SH SYNOPSIS
+.B exifrename.py
+.RB [ \-c ]
+.RB [ \-r ]
+.RB [ \-m
+.IR MASK ]
+.RB [ \-f ]
+.RB [ \-\-copy
+.RI [ FOLDER ]]
+.RB [ \-\-copytree
+.IR FOLDER ]
+.RB [ \-\-dry\-run ]
+.RB [ \-l
+.RI [ FILE ]]
+.RB [ \-\-doubtful\-count
+.IR N ]
+.RB [ \-\-doubtful\-seconds
+.IR S ]
+.RI [ PATTERN " ...]"
+.br
+.B exifrename.py
+.B \-u
+.RB [ \-r ]
+.RB [ \-\-dry\-run ]
+.RI [ PATTERN " ...]"
+.br
+.B exifrename.py
+.RB ( \-\-check " | " \-v " | " \-h )
+.SH DESCRIPTION
+.B exifrename.py
+names image files after the date they were taken, read from EXIF, using a mask.
+A file whose EXIF date is not trustworthy is skipped unless
+.B \-f
+is given.
+The validity rules are those of
+.BR metadata.py .
+Every rename is recorded in
+.B exifrename.map
+in the folder of the file so that it can be undone with
+.BR \-u .
+Switches are case-insensitive.
+One of
+.IR PATTERN ,
+.B \-c
+or
+.B \-r
+is required.
+.SH OPTIONS
+.TP
+.I PATTERN
+File names or wildcards, matched case-insensitively.
+.TP
+.BR \-c ", " \-\-current
+All image files in the current folder.
+.TP
+.BR \-r ", " \-\-recursive
+Include subfolders. With a PATTERN, select matching files in every subfolder.
+.TP
+.BR \-m ", " \-\-mask " \fIMASK\fR"
+New name, default \fBEXIF\-%YYYY%\-%MM%\-%DD%_%HH%\-%II%\-%SS%\fR.
+Tags: %YYYY% %YY% (year), %MMMMMM% %MMMM% (month name, full and short, English),
+%MM% (month), %DD% (day), %HH% (24\-hour), %HHHH% (12\-hour, am/pm added),
+%II% (minutes), %SS% (seconds), %file% (original name without extension),
+%folder% (folder name), %% (a literal %). The extension is kept.
+.TP
+.BR \-f ", " \-\-force
+Rename even if the EXIF date is invalid, using the EXIF save date, the GPS date stamp,
+or the file creation/modification time, in that order.
+.TP
+.BR \-\-copy " [\fIFOLDER\fR]"
+Copy instead of rename. Copies go to FOLDER, or beside the originals.
+.TP
+.BR \-\-copytree " \fIFOLDER\fR"
+Like \-\-copy, but recreate the folder tree relative to the current folder below FOLDER.
+.TP
+.BR \-u ", " \-\-undo
+Restore old names from exifrename.map (current folder, or all subfolders with \-r).
+.TP
+.B \-\-dry\-run
+Show what would happen; change nothing.
+.TP
+.BR \-l ", " \-\-log " [\fIFILE\fR]"
+Also write the output to a log (default exifrename.log, appended).
+.TP
+.BI \-\-doubtful\-count " N"
+Mark EXIF dates doubtful when a folder has more than N images within
+\-\-doubtful\-seconds of each other (default 20; 0 turns it off).
+.TP
+.BI \-\-doubtful\-seconds " S"
+Time span for the doubtful check (default 60).
+.TP
+.B \-\-check
+Check prerequisites (Pillow) and exit.
+.TP
+.BR \-v ", " \-\-version
+Show the version.
+.TP
+.BR \-h ", " \-? ", " \-\-help
+Show help.
+.SH FILES
+.TP
+.B exifrename.map
+CSV (new_name,old_name) per folder.
+.TP
+.B exifrename.log
+Default log file.
+.SH EXIT STATUS
+0 success, 1 error or nothing found, 2 usage error, 130 interrupted.
+.SH SEE ALSO
+.BR metadata.py (1)
