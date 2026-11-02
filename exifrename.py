@@ -22,8 +22,8 @@ from pathlib import Path
 
 import exifcore
 
-__version__ = "1.2.1"
-__date__ = "2026-10-30"
+__version__ = "1.2.2"
+__date__ = "2026-11-02"
 PROG = "exifrename.py"
 
 MAP_NAME = "exifrename.map"
@@ -33,6 +33,13 @@ MONTHS = ["January", "February", "March", "April", "May", "June", "July",
           "August", "September", "October", "November", "December"]
 TAGS = {"YYYY", "YY", "MMMMMM", "MMMM", "MM", "DD", "HH", "HHHH", "II", "SS", "FILE", "FOLDER"}
 INVALID_NAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+SKIP_DIRS = {"$recycle.bin", "recycler", "system volume information", ".trashes"}
+
+
+def skip_dir(name):
+    """Trash and system folders are never scanned (silently), at any depth."""
+    low = name.lower()
+    return low in SKIP_DIRS or low.startswith(".trash")
 
 
 class Reporter:
@@ -172,7 +179,8 @@ def collect_files(patterns, current, recursive, cwd, rep):
         walker = os.walk(base, onerror=lambda e: rep.warn(
             f"Warning: cannot read folder {e.filename}: {exifcore.friendly_error(e)}")) \
             if recursive else [(str(base), [], _listfiles(base, rep))]
-        for d, _, files in walker:
+        for d, dirs, files in walker:
+            dirs[:] = [x for x in dirs if not skip_dir(x)]
             for f in files:
                 if test(f):
                     p = Path(d) / f
@@ -396,7 +404,8 @@ def write_map(mp, rows):
 def run_undo(args, cwd, rep):
     if args.recursive:
         folders = []
-        for d, _, files in os.walk(cwd):
+        for d, dirs, files in os.walk(cwd):
+            dirs[:] = [x for x in dirs if not skip_dir(x)]
             if MAP_NAME in files:
                 folders.append(Path(d))
     else:

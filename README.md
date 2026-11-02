@@ -30,7 +30,7 @@ Switches are case-insensitive (`-R` = `-r`), and every one has a short and a lon
 |---|---|
 | `PATTERN ...` | Files to process. Wildcards and case-insensitive (`*.jpg` also finds `A.JPG`). Shell-expanded names work too. |
 | `-C`, `--current` | All image files in the current folder. |
-| `-R`, `--recursive` | Include subfolders. With `PATTERN` it selects matching files in every subfolder; without it, all images. With a `PATTERN`, `-C` is ignored. |
+| `-R`, `--recursive` | Include subfolders. With `PATTERN` it selects matching files in every subfolder; without it, all images. With a `PATTERN`, `-C` is ignored. Trash and system folders (`$RECYCLE.BIN`, `System Volume Information`, `.Trash*`, ...) are skipped silently. |
 | `-M MASK`, `--mask` | New name, see below. Default `EXIF-%YYYY%-%MM%-%DD%_%HH%-%II%-%SS%`. |
 | `-F`, `--force` | Rename even if the EXIF date is invalid (see below). |
 | `-D [FOLDER]`, `--copy` | Copy instead of rename. Copies go to `FOLDER`, or beside the originals if no folder is given. Files that are not renamed (invalid EXIF without `-F`, unreadable) are copied too, with their original name. |
@@ -109,6 +109,9 @@ python -m unittest discover tests
 ```
 
 ## Changelog
+
+### 1.2.2 (2026-11-02)
+- Trash and system folders (`$RECYCLE.BIN`, `RECYCLER`, `System Volume Information`, `.Trashes`, `.Trash*`) are skipped silently when scanning subfolders (`-R`, including `-U -R`).
 
 ### 1.2.1 (2026-10-30)
 - `-O`/`--onlyvalid` without `--copy`/`--copytree` is ignored with a warning instead of a usage error.

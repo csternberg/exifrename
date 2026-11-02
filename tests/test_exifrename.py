@@ -107,6 +107,17 @@ class CliTests(unittest.TestCase):
         self.assertTrue((self.d / "out" / "x" / "s1" / "s2").is_dir())
         self.assertEqual(self.names("out/x/s1/s2"), ["s2-2021.jpg"])
 
+    def test_recursive_skips_trash_folders(self):
+        for sub in ("$RECYCLE.BIN", "System Volume Information", ".Trash-1000", "ok"):
+            (self.d / sub).mkdir()
+            make_jpg(self.d / sub / "a.jpg", "2020:05:06 07:08:09")
+        code, out, err = run(self.d, "-R")
+        self.assertEqual(code, 0, err)
+        self.assertNotIn("cannot read", err)
+        self.assertEqual(self.names("ok"), ["EXIF-2020-05-06_07-08-09.jpg", "exifrename.map"])
+        for sub in ("$RECYCLE.BIN", "System Volume Information", ".Trash-1000"):
+            self.assertEqual(self.names(sub), ["a.jpg"])
+
     def test_copy_keeps_unrenamed(self):
         make_jpg(self.d / "a.jpg", "2020:05:06 07:08:09")
         make_jpg(self.d / "c.jpg")  # no EXIF

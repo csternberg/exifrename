@@ -1,5 +1,5 @@
 .\" Manual page for exifrename.py. Keep in sync with README.md and "exifrename.py --help".
-.TH EXIFRENAME.PY 1 "2026-10-30" "exifrename.py 1.2.1" "User Commands"
+.TH EXIFRENAME.PY 1 "2026-11-02" "exifrename.py 1.2.2" "User Commands"
 .SH NAME
 exifrename.py \- rename or copy image files after their EXIF date
 .SH SYNOPSIS
@@ -60,6 +60,7 @@ All image files in the current folder.
 .TP
 .BR \-r ", " \-\-recursive
 Include subfolders. With a PATTERN, select matching files in every subfolder.
+Trash and system folders (\fI$RECYCLE.BIN\fR, \fISystem Volume Information\fR, \fI.Trash*\fR, ...) are skipped silently.
 .TP
 .BR \-m ", " \-\-mask " \fIMASK\fR"
 New name, default \fBEXIF\-%YYYY%\-%MM%\-%DD%_%HH%\-%II%\-%SS%\fR.
